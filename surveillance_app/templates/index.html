@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Surveillance Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #ffffff; color: #1a1a2e; min-height: 100vh; }
+
+  /* Header */
+  .header { background: #1a1a2e; padding: 24px 40px; }
+  .header-title { color: #ffffff; font-size: 1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .header-sub { color: #9ca3af; font-size: 0.75rem; letter-spacing: 0.06em; margin-top: 4px; }
+
+  /* Main layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Section label style */
+  .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; margin-bottom: 12px; }
+
+  /* Upload card */
+  .upload-card { border: 2px dashed #d1d5db; border-radius: 8px; padding: 40px; text-align: center; background: #f9fafb; margin-bottom: 24px; }
+  .upload-card.drag-over { border-color: #1a1a2e; background: #f0f1f5; }
+  .upload-card input[type="file"] { display: none; }
+  .upload-label { display: inline-block; cursor: pointer; font-size: 0.85rem; color: #6b7280; }
+  .upload-label strong { display: block; font-size: 1rem; color: #1a1a2e; font-weight: 600; margin-bottom: 6px; }
+  .filename-display { margin-top: 12px; font-size: 0.8rem; color: #4b5563; font-style: italic; }
+
+  /* Buttons */
+  .btn { display: inline-block; background: #1a1a2e; color: #ffffff; border: none; padding: 12px 28px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 4px; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn:not(:disabled):hover { opacity: 0.85; }
+  .btn-secondary { background: #f3f4f6; color: #1a1a2e; border: 1px solid #d1d5db; }
+  .btn-secondary:hover { background: #e5e7eb; opacity: 1; }
+
+  /* Status bar */
+  .status-bar { display: none; align-items: center; gap: 12px; padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 24px; }
+  .status-bar.visible { display: flex; }
+  .status-text { font-size: 0.85rem; color: #374151; }
+
+  /* Spinner */
+  .spinner { width: 20px; height: 20px; border: 2px solid #e5e7eb; border-top-color: #1a1a2e; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error message */
+  .error-msg { display: none; background: #fef2f2; border-left: 4px solid #dc2626; padding: 14px 16px; border-radius: 4px; color: #7f1d1d; font-size: 0.85rem; margin-bottom: 24px; }
+  .error-msg.visible { display: block; }
+
+  /* Results */
+  .results { display: none; }
+  .results.visible { display: block; }
+
+  /* Metric cards */
+  .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 640px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+  .metric-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; }
+  .metric-value { font-size: 1.8rem; font-weight: 700; color: #1a1a2e; line-height: 1; margin-bottom: 8px; }
+  .metric-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; }
+
+  /* Anomaly banners */
+  .anomaly-section { margin-bottom: 24px; }
+  .anomaly-banner { border-left: 4px solid #dc2626; background: #fef2f2; color: #7f1d1d; padding: 12px 16px; border-radius: 0 4px 4px 0; margin-bottom: 8px; font-size: 0.85rem; font-weight: 500; }
+
+  /* Report block */
+  .report-section { margin-bottom: 24px; }
+  .report-block { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; white-space: pre; overflow-x: auto; line-height: 1.6; color: #1a1a2e; }
+
+  /* Download row */
+  .download-row { margin-bottom: 40px; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 40px 0; }
+
+  /* History table */
+  .history-section { margin-bottom: 40px; }
+  .history-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .history-table th { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+  .history-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #374151; }
+  .history-table tr:last-child td { border-bottom: none; }
+  .history-empty { color: #9ca3af; font-size: 0.82rem; padding: 16px 0; }
+
+  .actions-row { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">Surveillance Analysis</div>
+  <div class="header-sub">Part 1 — Perception Pipeline</div>
+</div>
+
+<div class="container">
+
+  <!-- Upload -->
+  <div class="section-label">Upload Security Footage</div>
+  <div class="upload-card" id="uploadZone">
+    <label class="upload-label" for="fileInput">
+      <strong>Upload Security Footage</strong>
+      Drag & drop or click to select a video file
+    </label>
+    <input type="file" id="fileInput" accept=".mp4,.avi,.mov,.mkv" />
+    <div class="filename-display" id="filenameDisplay"></div>
+  </div>
+
+  <div class="actions-row">
+    <button class="btn" id="runBtn" disabled>Run Analysis</button>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar" id="statusBar">
+    <div class="spinner" id="spinner"></div>
+    <span class="status-text" id="statusText">Analysing footage...</span>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="section-label">Analysis Results</div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-value" id="metricPersons">—</div>
+        <div class="metric-label">Individuals Detected</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metricDuration">—</div>
+        <div class="metric-label">Video Duration</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metricPeak">—</div>
+        <div class="metric-label">Peak Occupancy</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metricAnomalies">—</div>
+        <div class="metric-label">Anomaly Flags</div>
+      </div>
+    </div>
+
+    <div class="anomaly-section" id="anomalySection"></div>
+
+    <div class="report-section">
+      <div class="section-label">Full Report</div>
+      <div class="report-block" id="reportBlock"></div>
+    </div>
+
+    <div class="download-row">
+      <button class="btn btn-secondary" id="downloadBtn">Download Report</button>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- History -->
+  <div class="history-section">
+    <div class="section-label">Recent Analyses</div>
+    <div id="historyContainer">
+      <div class="history-empty">Loading history...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const filenameDisplay = document.getElementById('filenameDisplay');
+  const runBtn = document.getElementById('runBtn');
+  const statusBar = document.getElementById('statusBar');
+  const statusText = document.getElementById('statusText');
+  const spinner = document.getElementById('spinner');
+  const errorMsg = document.getElementById('errorMsg');
+  const results = document.getElementById('results');
+  const uploadZone = document.getElementById('uploadZone');
+
+  let summaryText = '';
+  let pollTimer = null;
+
+  // File selection
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (file) {
+      filenameDisplay.textContent = file.name;
+      runBtn.disabled = false;
+    }
+  });
+
+  // Drag and drop
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+      filenameDisplay.textContent = file.name;
+      runBtn.disabled = false;
+    }
+  });
+
+  // Run analysis
+  runBtn.addEventListener('click', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    runBtn.disabled = true;
+    statusBar.classList.add('visible');
+    statusText.textContent = 'Uploading footage...';
+    errorMsg.classList.remove('visible');
+    results.classList.remove('visible');
+
+    const fd = new FormData();
+    fd.append('file', file);
+
+    let jobId;
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Upload failed');
+      jobId = data.job_id;
+    } catch (err) {
+      showError(err.message);
+      return;
+    }
+
+    statusText.textContent = 'Analysing footage...';
+    pollTimer = setInterval(() => pollStatus(jobId), 2000);
+  });
+
+  async function pollStatus(jobId) {
+    try {
+      const res = await fetch(`/status/${jobId}`);
+      const data = await res.json();
+
+      if (data.status === 'processing' || data.status === 'queued') {
+        statusText.textContent = 'Analysing footage...';
+      } else if (data.status === 'done') {
+        clearInterval(pollTimer);
+        statusBar.classList.remove('visible');
+        showResults(data.result);
+        loadHistory();
+      } else if (data.status === 'error') {
+        clearInterval(pollTimer);
+        showError(data.error || 'Processing error');
+      }
+    } catch (err) {
+      // network hiccup — keep polling
+    }
+  }
+
+  function showError(msg) {
+    statusBar.classList.remove('visible');
+    errorMsg.textContent = msg;
+    errorMsg.classList.add('visible');
+    runBtn.disabled = false;
+  }
+
+  function fmtDuration(secs) {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}m ${String(s).padStart(2, '0')}s`;
+  }
+
+  function showResults(r) {
+    document.getElementById('metricPersons').textContent = r.total_persons;
+    document.getElementById('metricDuration').textContent = fmtDuration(r.duration);
+    document.getElementById('metricPeak').textContent = r.peak_occupancy;
+    document.getElementById('metricAnomalies').textContent = r.anomaly_count;
+
+    const anomalySection = document.getElementById('anomalySection');
+    anomalySection.innerHTML = '';
+    if (r.anomaly_count > 0) {
+      r.anomaly_flags.forEach(flag => {
+        const div = document.createElement('div');
+        div.className = 'anomaly-banner';
+        div.textContent = flag;
+        anomalySection.appendChild(div);
+      });
+    }
+
+    document.getElementById('reportBlock').textContent = r.summary_text;
+    summaryText = r.summary_text;
+    results.classList.add('visible');
+    runBtn.disabled = false;
+  }
+
+  // Download
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const blob = new Blob([summaryText], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'surveillance_report.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // History
+  async function loadHistory() {
+    const container = document.getElementById('historyContainer');
+    try {
+      const res = await fetch('/history');
+      const data = await res.json();
+
+      if (data.warning && (!data.items || data.items.length === 0)) {
+        container.innerHTML = `<div class="history-empty">Database not connected — history unavailable</div>`;
+        return;
+      }
+
+      if (!data.items || data.items.length === 0) {
+        container.innerHTML = `<div class="history-empty">No analyses recorded yet.</div>`;
+        return;
+      }
+
+      const table = document.createElement('table');
+      table.className = 'history-table';
+      table.innerHTML = `
+        <thead><tr>
+          <th>Filename</th><th>Duration</th><th>Persons</th><th>Anomalies</th><th>Processed</th>
+        </tr></thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector('tbody');
+      data.items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.filename}</td>
+          <td>${fmtDuration(item.duration)}</td>
+          <td>${item.persons}</td>
+          <td>${item.anomalies}</td>
+          <td>${item.processed_at}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      container.innerHTML = '';
+      container.appendChild(table);
+    } catch {
+      container.innerHTML = `<div class="history-empty">Could not load history.</div>`;
+    }
+  }
+
+  loadHistory();
+</script>
+</body>
+</html>

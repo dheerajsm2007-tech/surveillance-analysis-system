@@ -1,0 +1,48 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Environment variables
+.env
+
+# Model weights (too large for git)
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Uploads & temp files
+surveillance_uploads/
+
+# Eagle dependency (cloned separately during setup — see README)
+eagle/
+
+# Logs
+*.log
+install_log*.txt
+eagle.zip
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Distribution
+dist/
+build/
+*.egg-info/

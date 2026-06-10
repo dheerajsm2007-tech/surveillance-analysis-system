@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Surveillance Q&amp;A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #ffffff; color: #1a1a2e; min-height: 100vh; }
+
+  /* Header */
+  .header { background: #1a1a2e; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .header-left {}
+  .header-title { color: #ffffff; font-size: 1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .header-sub { color: #9ca3af; font-size: 0.75rem; letter-spacing: 0.06em; margin-top: 4px; }
+  .header-nav a { color: #9ca3af; font-size: 0.75rem; text-decoration: none; letter-spacing: 0.06em; transition: color 0.15s; }
+  .header-nav a:hover { color: #ffffff; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Section label */
+  .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; margin-bottom: 12px; }
+
+  /* Cards */
+  .card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+
+  /* Select */
+  .video-select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #1a1a2e; background: #ffffff; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  .video-select:focus { outline: 2px solid #1a1a2e; outline-offset: 2px; }
+
+  /* Buttons */
+  .btn { display: inline-block; background: #1a1a2e; color: #ffffff; border: none; padding: 10px 24px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 4px; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn:not(:disabled):hover { opacity: 0.85; }
+  .btn-ghost { background: transparent; color: #6b7280; border: 1px solid #e5e7eb; letter-spacing: 0.06em; }
+  .btn-ghost:not(:disabled):hover { background: #f3f4f6; opacity: 1; }
+
+  /* Spinner */
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top-color: #1a1a2e; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Status messages */
+  .status-line { display: none; align-items: center; font-size: 0.82rem; padding: 10px 14px; border-radius: 4px; margin-top: 12px; }
+  .status-line.visible { display: flex; }
+  .status-line.loading { background: #f9fafb; border: 1px solid #e5e7eb; color: #374151; }
+  .status-line.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+  .status-line.error   { background: #fef2f2; border-left: 4px solid #dc2626; color: #7f1d1d; }
+
+  /* Q&A section */
+  .qa-section { display: none; }
+  .qa-section.visible { display: block; }
+
+  /* Question input */
+  .question-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .question-input { flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #1a1a2e; }
+  .question-input:focus { outline: 2px solid #1a1a2e; outline-offset: 2px; }
+
+  /* Suggested pills */
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .pill { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; color: #374151; cursor: pointer; transition: background 0.15s, border-color 0.15s; white-space: nowrap; }
+  .pill:hover { background: #1a1a2e; color: #ffffff; border-color: #1a1a2e; }
+
+  /* Answer block */
+  .answer-section { display: none; }
+  .answer-section.visible { display: block; }
+  .answer-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; font-size: 0.95rem; line-height: 1.7; color: #1a1a2e; margin-bottom: 24px; }
+
+  /* Source cards */
+  .sources-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+  .source-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 12px; }
+  .source-badge { background: #1a1a2e; color: #ffffff; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 3px; white-space: nowrap; letter-spacing: 0.06em; flex-shrink: 0; margin-top: 2px; }
+  .source-sim { font-size: 0.7rem; color: #9ca3af; white-space: nowrap; flex-shrink: 0; margin-top: 3px; }
+  .source-text { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #374151; line-height: 1.5; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 32px 0; }
+
+  /* Chat history */
+  .history-section { margin-bottom: 40px; }
+  .history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .history-list { display: flex; flex-direction: column; gap: 16px; }
+  .history-item { border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
+  .history-q { background: #1a1a2e; color: #ffffff; padding: 10px 16px; font-size: 0.82rem; font-weight: 600; }
+  .history-a { padding: 12px 16px; font-size: 0.82rem; color: #4b5563; line-height: 1.6; background: #ffffff; }
+  .history-empty { color: #9ca3af; font-size: 0.82rem; }
+
+  .actions-row { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-title">Surveillance Analysis</div>
+    <div class="header-sub">Part 2 — Q&amp;A Interface</div>
+  </div>
+  <div class="header-nav">
+    <a href="/">← Back to Analysis</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Video selector -->
+  <div class="section-label">Select Video</div>
+  <div class="card">
+    <select class="video-select" id="videoSelect">
+      <option value="">Loading analysed videos…</option>
+    </select>
+    <div class="actions-row">
+      <button class="btn" id="embedBtn" disabled>Prepare for Q&amp;A</button>
+    </div>
+    <div class="status-line loading" id="embedStatus">
+      <span class="spinner"></span><span id="embedStatusText">Embedding events…</span>
+    </div>
+  </div>
+
+  <!-- Q&A section -->
+  <div class="qa-section" id="qaSection">
+    <div class="section-label">Ask a Question</div>
+    <div class="card">
+      <div class="question-row">
+        <input type="text" class="question-input" id="questionInput"
+               placeholder="e.g. How many people entered after 10 PM?" />
+        <button class="btn" id="askBtn">Ask</button>
+      </div>
+      <div class="pills">
+        <span class="pill">How many people were detected?</span>
+        <span class="pill">Who had the longest dwell time?</span>
+        <span class="pill">Were there any anomalies?</span>
+        <span class="pill">Which zones were most visited?</span>
+        <span class="pill">What happened between 2 and 3 AM?</span>
+      </div>
+      <div class="status-line loading" id="askStatus">
+        <span class="spinner"></span><span>Thinking…</span>
+      </div>
+      <div class="status-line error" id="askError"></div>
+    </div>
+  </div>
+
+  <!-- Answer section -->
+  <div class="answer-section" id="answerSection">
+    <div class="section-label">Answer</div>
+    <div class="answer-card" id="answerCard"></div>
+
+    <div class="section-label">Sources Used</div>
+    <div class="sources-grid" id="sourcesGrid"></div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- Chat history -->
+  <div class="history-section">
+    <div class="history-header">
+      <div class="section-label" style="margin-bottom:0">Conversation History</div>
+      <button class="btn btn-ghost" id="clearBtn">Clear History</button>
+    </div>
+    <div id="historyList">
+      <div class="history-empty" id="historyEmpty">No questions asked yet.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const videoSelect  = document.getElementById('videoSelect');
+  const embedBtn     = document.getElementById('embedBtn');
+  const embedStatus  = document.getElementById('embedStatus');
+  const embedStatusText = document.getElementById('embedStatusText');
+  const qaSection    = document.getElementById('qaSection');
+  const questionInput = document.getElementById('questionInput');
+  const askBtn       = document.getElementById('askBtn');
+  const askStatus    = document.getElementById('askStatus');
+  const askError     = document.getElementById('askError');
+  const answerSection = document.getElementById('answerSection');
+  const answerCard   = document.getElementById('answerCard');
+  const sourcesGrid  = document.getElementById('sourcesGrid');
+  const historyList  = document.getElementById('historyList');
+  const historyEmpty = document.getElementById('historyEmpty');
+  const clearBtn     = document.getElementById('clearBtn');
+
+  let chatHistory = [];
+
+  // ── Load videos ──────────────────────────────────────────────
+  async function loadVideos() {
+    try {
+      const res  = await fetch('/api/videos');
+      const data = await res.json();
+      videoSelect.innerHTML = '';
+      if (!data.length) {
+        videoSelect.innerHTML = '<option value="">No analysed videos found. Run Part 1 first.</option>';
+        return;
+      }
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '— select a video —';
+      videoSelect.appendChild(placeholder);
+      data.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.video_filename;
+        const ts = v.processed_at ? v.processed_at.replace('T', ' ').slice(0, 16) : '';
+        opt.textContent = `${v.video_filename}  —  ${ts}  —  ${v.total_unique_persons} persons`;
+        videoSelect.appendChild(opt);
+      });
+      embedBtn.disabled = false;
+    } catch {
+      videoSelect.innerHTML = '<option value="">Could not load videos — is the server running?</option>';
+    }
+  }
+  loadVideos();
+
+  videoSelect.addEventListener('change', () => {
+    embedBtn.disabled = !videoSelect.value;
+    hideEmbed();
+    qaSection.classList.remove('visible');
+    answerSection.classList.remove('visible');
+  });
+
+  function hideEmbed() {
+    embedStatus.classList.remove('visible', 'loading', 'success', 'error');
+  }
+
+  // ── Embed ────────────────────────────────────────────────────
+  embedBtn.addEventListener('click', async () => {
+    const filename = videoSelect.value;
+    if (!filename) return;
+
+    embedBtn.disabled = true;
+    embedStatus.className = 'status-line loading visible';
+    embedStatusText.textContent = 'Embedding events…';
+
+    try {
+      const res  = await fetch('/api/embed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ video_filename: filename }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Embed failed');
+      const msg = data.embedded > 0
+        ? `Ready — ${data.embedded} events embedded`
+        : 'Ready — events were already embedded';
+      embedStatus.className = 'status-line success visible';
+      embedStatusText.textContent = msg;
+      qaSection.classList.add('visible');
+    } catch (err) {
+      embedStatus.className = 'status-line error visible';
+      embedStatusText.textContent = err.message;
+    } finally {
+      embedBtn.disabled = false;
+    }
+  });
+
+  // ── Suggested pills ──────────────────────────────────────────
+  document.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      questionInput.value = pill.textContent.trim();
+      questionInput.focus();
+    });
+  });
+
+  // ── Ask ──────────────────────────────────────────────────────
+  askBtn.addEventListener('click', doAsk);
+  questionInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAsk(); });
+
+  async function doAsk() {
+    const question = questionInput.value.trim();
+    const filename = videoSelect.value;
+    if (!question || !filename) return;
+
+    askBtn.disabled = true;
+    askStatus.classList.add('visible');
+    askError.classList.remove('visible');
+    answerSection.classList.remove('visible');
+
+    try {
+      const res  = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, video_filename: filename }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Ask failed');
+
+      showAnswer(data);
+      appendHistory(question, data.answer);
+      questionInput.value = '';
+    } catch (err) {
+      askError.textContent = err.message.includes('Ollama')
+        ? err.message
+        : `Error: ${err.message}`;
+      askError.classList.add('visible');
+    } finally {
+      askStatus.classList.remove('visible');
+      askBtn.disabled = false;
+    }
+  }
+
+  function showAnswer(data) {
+    answerCard.textContent = data.answer;
+    answerSection.classList.add('visible');
+
+    sourcesGrid.innerHTML = '';
+    if (data.sources && data.sources.length) {
+      data.sources.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'source-card';
+        card.innerHTML = `
+          <span class="source-badge">#${String(s.track_id).padStart(3,'0')} ${s.label}</span>
+          <span class="source-text">${escHtml(s.text)}</span>
+          <span class="source-sim">sim ${s.similarity.toFixed(3)}</span>
+        `;
+        sourcesGrid.appendChild(card);
+      });
+    } else {
+      sourcesGrid.innerHTML = '<div style="font-size:0.82rem;color:#9ca3af;">No source events retrieved.</div>';
+    }
+  }
+
+  // ── History ──────────────────────────────────────────────────
+  function appendHistory(question, answer) {
+    chatHistory.push({ question, answer });
+    historyEmpty.style.display = 'none';
+
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `
+      <div class="history-q">${escHtml(question)}</div>
+      <div class="history-a">${escHtml(answer)}</div>
+    `;
+    historyList.insertBefore(item, historyEmpty);
+  }
+
+  clearBtn.addEventListener('click', () => {
+    chatHistory = [];
+    document.querySelectorAll('.history-item').forEach(el => el.remove());
+    historyEmpty.style.display = '';
+  });
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
