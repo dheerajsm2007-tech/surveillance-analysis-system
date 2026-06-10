@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "eagle" / "Embodied"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "eagle" / "Embodied"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from part1.sampler import extract_frames, get_video_duration

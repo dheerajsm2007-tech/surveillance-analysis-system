@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 
@@ -38,7 +38,7 @@ try:
         dwell_seconds = Column(Float, nullable=False)
         zones = Column(JSON, nullable=False, default=list)
         frame_count = Column(Integer, nullable=False)
-        processed_at = Column(DateTime, default=datetime.utcnow)
+        processed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     class SummaryRecord(_Base):
         __tablename__ = "summaries"
@@ -50,7 +50,7 @@ try:
         peak_occupancy_timestamp = Column(Float, nullable=False)
         anomaly_flags = Column(JSON, nullable=False, default=list)
         summary_text = Column(Text, nullable=False)
-        processed_at = Column(DateTime, default=datetime.utcnow)
+        processed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     engine = create_engine(DATABASE_URL, pool_pre_ping=True)
     SessionLocal = sessionmaker(bind=engine)

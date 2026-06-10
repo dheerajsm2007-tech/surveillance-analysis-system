@@ -16,11 +16,19 @@ DATABASE_URL = os.getenv(
 )
 
 
+def _fmt_ts(s: float) -> str:
+    return f"{int(s // 3600):02d}:{int((s % 3600) // 60):02d}:{int(s % 60):02d}"
+
+
+def _fmt_dur(s: float) -> str:
+    return f"{int(s // 60)}m {int(s % 60):02d}s"
+
+
 def _parse_time_bounds(question: str):
     """
     Extracts time bounds from natural language.
     Returns (lower_seconds, upper_seconds) or (None, None) if no time found.
-    Handles patterns like: after 10pm, before 2pm, between 2 and 3pm.
+    Handles: after 10pm, before 2pm, between 2 and 3pm.
     """
     question_lower = question.lower()
 
@@ -32,19 +40,16 @@ def _parse_time_bounds(question: str):
             h = 0
         return h * 3600
 
-    # between X and Y
     m = re.search(r"between\s+(\d+)\s*(?:am|pm)?\s+and\s+(\d+)\s*(am|pm)?", question_lower)
     if m:
         mer = m.group(3) or "pm"
         return to_seconds(m.group(1), mer), to_seconds(m.group(2), mer)
 
-    # after X
     m = re.search(r"after\s+(\d+)\s*(am|pm)?", question_lower)
     if m:
         mer = m.group(2) or "pm"
         return to_seconds(m.group(1), mer), None
 
-    # before X
     m = re.search(r"before\s+(\d+)\s*(am|pm)?", question_lower)
     if m:
         mer = m.group(2) or "pm"
@@ -60,16 +65,42 @@ def _cosine_similarity(a: list, b: list) -> float:
     return float(np.dot(va, vb) / denom) if denom > 0 else 0.0
 
 
-def retrieve(question: str, video_filename: str, top_k: int = 5) -> list[Document]:
+def retrieve_summary(video_filename: str) -> str:
+    """
+    Returns the pre-built summary text + anomaly flags for a video.
+    Injected into context so aggregate questions (counts, anomalies) can be answered.
+    """
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur  = conn.cursor()
+        cur.execute(
+            "SELECT summary_text, anomaly_flags FROM summaries WHERE video_filename = %s ORDER BY processed_at DESC LIMIT 1",
+            (video_filename,),
+        )
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if not row:
+            return ""
+        summary_text, anomaly_flags = row
+        flags = anomaly_flags if isinstance(anomaly_flags, list) else json.loads(anomaly_flags or "[]")
+        flag_block = ""
+        if flags:
+            flag_block = "\nANOMALY FLAGS:\n" + "\n".join(f"  [!] {f}" for f in flags)
+        return f"VIDEO SUMMARY:\n{summary_text}{flag_block}"
+    except Exception:
+        return ""
+
+
+def retrieve(question: str, video_filename: str, top_k: int = 8) -> list[Document]:
     """
     Two-stage retrieval:
     1. SQL time filter (if question contains a time reference)
-    2. Python-side cosine similarity on embeddings stored as JSON text
+    2. Python-side cosine similarity on JSON-encoded embeddings
     Returns list of LangChain Document objects ranked by similarity.
     """
     lower_ts, upper_ts = _parse_time_bounds(question)
 
-    # Stage 1 — SQL query with optional time filter
     conditions = ["video_filename = %s", "embedding IS NOT NULL"]
     params: list = [video_filename]
 
@@ -98,7 +129,6 @@ def retrieve(question: str, video_filename: str, top_k: int = 5) -> list[Documen
     if not rows:
         return []
 
-    # Stage 2 — embed the question and rank rows by cosine similarity
     model = OllamaEmbeddings(model="nomic-embed-text")
     q_vec = model.embed_query(question)
 
@@ -114,27 +144,17 @@ def retrieve(question: str, video_filename: str, top_k: int = 5) -> list[Documen
 
         similarity = _cosine_similarity(q_vec, ev_vec)
         scored.append((similarity, track_id, label, confidence, first_seen,
-                       last_seen, dwell_seconds, zones, vid_filename))
+                       last_seen, dwell_seconds, zones))
 
     scored.sort(key=lambda x: x[0], reverse=True)
-    top = scored[:top_k]
 
     docs = []
-    for sim, track_id, label, confidence, first_seen, last_seen, \
-            dwell_seconds, zones, vid_filename in top:
-
+    for sim, track_id, label, confidence, first_seen, last_seen, dwell_seconds, zones in scored[:top_k]:
         zones_list = zones if isinstance(zones, list) else json.loads(zones or "[]")
-
-        def fmt_ts(s):
-            return f"{int(s // 3600):02d}:{int((s % 3600) // 60):02d}:{int(s % 60):02d}"
-
-        def fmt_dur(s):
-            return f"{int(s // 60)}m {int(s % 60):02d}s"
-
         text = (
             f"{label.capitalize()} #{track_id:03d}: "
-            f"entered {fmt_ts(first_seen)}, exited {fmt_ts(last_seen)}, "
-            f"dwell {fmt_dur(dwell_seconds)}, "
+            f"entered {_fmt_ts(first_seen)}, exited {_fmt_ts(last_seen)}, "
+            f"dwell {_fmt_dur(dwell_seconds)}, "
             f"zones: {', '.join(zones_list)}, "
             f"confidence {confidence:.2f}"
         )

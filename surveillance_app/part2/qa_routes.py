@@ -66,7 +66,8 @@ def ask_question():
     try:
         result = ask(question, filename)
         return jsonify(result)
-    except ConnectionError:
-        return jsonify({"error": "Ollama is not running. Start it with: ollama serve"}), 503
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        msg = str(e)
+        if any(k in msg.lower() for k in ("connection", "refused", "ollama", "connect error")):
+            return jsonify({"error": "Ollama is not running. Start it with: ollama serve"}), 503
+        return jsonify({"error": msg}), 500
