@@ -12,9 +12,14 @@
   body { font-family: 'Inter', sans-serif; background: #ffffff; color: #1a1a2e; min-height: 100vh; }
 
   /* Header */
-  .header { background: #1a1a2e; padding: 24px 40px; }
-  .header-title { color: #ffffff; font-size: 1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .header { background: #1a1a2e; padding: 20px 40px 0; }
+  .header-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 0; }
+  .header-title { color: #ffffff; font-size: 1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding-bottom: 20px; }
   .header-sub { color: #9ca3af; font-size: 0.75rem; letter-spacing: 0.06em; margin-top: 4px; }
+  .nav-tabs { display: flex; gap: 0; align-items: flex-end; }
+  .nav-tab { display: inline-block; padding: 10px 22px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; color: #9ca3af; border-radius: 4px 4px 0 0; transition: color 0.15s, background 0.15s; }
+  .nav-tab:hover { color: #ffffff; }
+  .nav-tab.active { background: #ffffff; color: #1a1a2e; }
 
   /* Main layout */
   .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
@@ -84,13 +89,22 @@
   .history-empty { color: #9ca3af; font-size: 0.82rem; padding: 16px 0; }
 
   .actions-row { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
+  .btn-rag { background: #16a34a; }
+  .btn-rag:not(:disabled):hover { opacity: 0.85; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-title">Surveillance Analysis</div>
-  <div class="header-sub">Part 1 — Perception Pipeline</div>
+  <div class="header-top">
+    <div>
+      <div class="header-title">Surveillance Analysis</div>
+    </div>
+    <nav class="nav-tabs">
+      <a class="nav-tab active" href="/">Analysis</a>
+      <a class="nav-tab" href="/qa">Ask AI</a>
+    </nav>
+  </div>
 </div>
 
 <div class="container">
@@ -149,8 +163,9 @@
       <div class="report-block" id="reportBlock"></div>
     </div>
 
-    <div class="download-row">
+    <div class="download-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
       <button class="btn btn-secondary" id="downloadBtn">Download Report</button>
+      <a class="btn btn-rag" id="ragBtn" href="/qa" style="text-decoration:none;">Ask AI Questions →</a>
     </div>
   </div>
 

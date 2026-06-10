@@ -12,12 +12,13 @@
   body { font-family: 'Inter', sans-serif; background: #ffffff; color: #1a1a2e; min-height: 100vh; }
 
   /* Header */
-  .header { background: #1a1a2e; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .header-left {}
-  .header-title { color: #ffffff; font-size: 1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
-  .header-sub { color: #9ca3af; font-size: 0.75rem; letter-spacing: 0.06em; margin-top: 4px; }
-  .header-nav a { color: #9ca3af; font-size: 0.75rem; text-decoration: none; letter-spacing: 0.06em; transition: color 0.15s; }
-  .header-nav a:hover { color: #ffffff; }
+  .header { background: #1a1a2e; padding: 20px 40px 0; }
+  .header-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+  .header-title { color: #ffffff; font-size: 1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding-bottom: 20px; }
+  .nav-tabs { display: flex; gap: 0; align-items: flex-end; }
+  .nav-tab { display: inline-block; padding: 10px 22px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; color: #9ca3af; border-radius: 4px 4px 0 0; transition: color 0.15s, background 0.15s; }
+  .nav-tab:hover { color: #ffffff; }
+  .nav-tab.active { background: #ffffff; color: #1a1a2e; }
 
   /* Layout */
   .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
@@ -94,12 +95,14 @@
 <body>
 
 <div class="header">
-  <div class="header-left">
-    <div class="header-title">Surveillance Analysis</div>
-    <div class="header-sub">Part 2 — Q&amp;A Interface</div>
-  </div>
-  <div class="header-nav">
-    <a href="/">← Back to Analysis</a>
+  <div class="header-top">
+    <div>
+      <div class="header-title">Surveillance Analysis</div>
+    </div>
+    <nav class="nav-tabs">
+      <a class="nav-tab" href="/">Analysis</a>
+      <a class="nav-tab active" href="/qa">Ask AI</a>
+    </nav>
   </div>
 </div>
 
