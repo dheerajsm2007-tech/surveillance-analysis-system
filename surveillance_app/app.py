@@ -47,6 +47,9 @@ JOBS: dict[str, dict] = {}
 def _run_job(job_id: str, video_path: str):
     JOBS[job_id]["status"] = "processing"
     try:
+        if _detector.worker is None:
+            print("[App] Detector not loaded; retrying load...")
+            _detector.load()
         result = run_pipeline(video_path, save_to_db=True, detector=_detector)
         JOBS[job_id]["status"] = "done"
         JOBS[job_id]["result"] = result

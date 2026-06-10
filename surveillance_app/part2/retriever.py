@@ -84,9 +84,10 @@ def retrieve_summary(video_filename: str) -> str:
             return ""
         summary_text, anomaly_flags = row
         flags = anomaly_flags if isinstance(anomaly_flags, list) else json.loads(anomaly_flags or "[]")
-        flag_block = ""
         if flags:
             flag_block = "\nANOMALY FLAGS:\n" + "\n".join(f"  [!] {f}" for f in flags)
+        else:
+            flag_block = "\nANOMALY FLAGS: None detected."
         return f"VIDEO SUMMARY:\n{summary_text}{flag_block}"
     except Exception:
         return ""

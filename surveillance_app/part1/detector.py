@@ -64,11 +64,17 @@ class Detector:
         from locateanything_worker import LocateAnythingWorker
         self.worker = LocateAnythingWorker(MODEL_ID, device=device, dtype=torch_dtype)
 
+    MAX_DIM = 640  # cap inference resolution to avoid OOM on CPU
+
     def detect(self, frame_bgr) -> list:
         frame_rgb = frame_bgr[:, :, ::-1].copy()
         pil_img = Image.fromarray(frame_rgb)
-        h, w = frame_bgr.shape[:2]
 
+        # Downscale very large frames before inference to stay within CPU RAM budget
+        if max(pil_img.size) > self.MAX_DIM:
+            pil_img.thumbnail((self.MAX_DIM, self.MAX_DIM), Image.LANCZOS)
+
+        w, h = pil_img.size
         result = self.worker.detect(pil_img, CATEGORIES)
         answer = result.get("answer", "")
 
